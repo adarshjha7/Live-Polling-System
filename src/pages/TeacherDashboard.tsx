@@ -69,7 +69,7 @@ export default function TeacherDashboard() {
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-gray-500" />
                 <span className="text-sm text-gray-600">
-                  {state.students.length} Students Online
+                  {activeStudents.length} Students Online
                 </span>
               </div>
               {hasActivePoll && (
