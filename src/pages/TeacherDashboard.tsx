@@ -30,11 +30,25 @@ import {
 } from "lucide-react";
 
 export default function TeacherDashboard() {
-  const { state } = usePoll();
+  const { state, kickStudent, refreshState } = usePoll();
   const [activeTab, setActiveTab] = useState("create");
 
   const currentPoll = state.currentPoll;
   const hasActivePoll = currentPoll && currentPoll.isActive;
+  const activeStudents = state.students.filter((s) => !s.isKicked);
+
+  // Auto-refresh state every 3 seconds to see new students and responses
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refreshState();
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [refreshState]);
+
+  const handleKickStudent = (studentId: string) => {
+    kickStudent(studentId);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
