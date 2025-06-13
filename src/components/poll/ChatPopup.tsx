@@ -28,17 +28,19 @@ export function ChatPopup({ userType, userName }: ChatPopupProps) {
   }, [state.chatMessages]);
 
   useEffect(() => {
-    if (!isOpen && state.chatMessages.length > lastSeenMessageCount.current) {
-      setUnreadCount(state.chatMessages.length - lastSeenMessageCount.current);
+    const chatMessages = state.chatMessages || [];
+    if (!isOpen && chatMessages.length > lastSeenMessageCount.current) {
+      setUnreadCount(chatMessages.length - lastSeenMessageCount.current);
     }
   }, [state.chatMessages, isOpen]);
 
   useEffect(() => {
     if (isOpen) {
-      lastSeenMessageCount.current = state.chatMessages.length;
+      const chatMessages = state.chatMessages || [];
+      lastSeenMessageCount.current = chatMessages.length;
       setUnreadCount(0);
     }
-  }, [isOpen]);
+  }, [isOpen, state.chatMessages]);
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
