@@ -97,7 +97,7 @@ export function ChatPopup({ userType, userName }: ChatPopupProps) {
             <CardContent className="flex-1 flex flex-col p-0">
               {/* Messages Area */}
               <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                {state.chatMessages.length === 0 ? (
+                {!state.chatMessages || state.chatMessages.length === 0 ? (
                   <div className="text-center text-gray-500 text-sm mt-8">
                     No messages yet. Start a conversation!
                   </div>
