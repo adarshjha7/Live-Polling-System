@@ -5,7 +5,14 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
-import { Poll, Answer, Student, PollState, PollResult } from "@/types/poll";
+import {
+  Poll,
+  Answer,
+  Student,
+  PollState,
+  PollResult,
+  ChatMessage,
+} from "@/types/poll";
 
 interface PollContextType {
   state: PollState;
@@ -19,6 +26,13 @@ interface PollContextType {
   getStudentById: (id: string) => Student | undefined;
   canCreateNewPoll: () => boolean;
   getTimeRemaining: () => number;
+  kickStudent: (studentId: string) => void;
+  sendChatMessage: (
+    message: string,
+    senderType: "teacher" | "student",
+    senderName: string,
+  ) => void;
+  refreshState: () => void;
 }
 
 type PollAction =
