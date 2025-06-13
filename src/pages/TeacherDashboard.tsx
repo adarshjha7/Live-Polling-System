@@ -115,14 +115,18 @@ export default function TeacherDashboard() {
         )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto">
+          <TabsList className="grid w-full grid-cols-3 max-w-lg mx-auto">
             <TabsTrigger value="create" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               Create Poll
             </TabsTrigger>
             <TabsTrigger value="results" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
-              View Results
+              Live Results
+            </TabsTrigger>
+            <TabsTrigger value="history" className="flex items-center gap-2">
+              <History className="h-4 w-4" />
+              History
             </TabsTrigger>
           </TabsList>
 
