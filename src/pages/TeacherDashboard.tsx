@@ -137,16 +137,85 @@ export default function TeacherDashboard() {
           <TabsContent value="results" className="mt-8">
             <PollResults />
           </TabsContent>
+
+          <TabsContent value="history" className="mt-8">
+            <Card>
+              <CardHeader>
+                <CardTitle>Poll History</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {state.polls.length === 0 ? (
+                  <p className="text-center text-gray-600 py-8">
+                    No polls created yet. Create your first poll to see history
+                    here.
+                  </p>
+                ) : (
+                  <div className="space-y-4">
+                    {state.polls
+                      .slice()
+                      .reverse()
+                      .map((poll, index) => {
+                        const pollAnswers = state.answers.filter(
+                          (a) => a.pollId === poll.id,
+                        );
+                        const votes = new Array(poll.options.length).fill(0);
+                        pollAnswers.forEach((answer) => {
+                          votes[answer.optionIndex]++;
+                        });
+
+                        return (
+                          <div
+                            key={poll.id}
+                            className="p-4 border rounded-lg space-y-2"
+                          >
+                            <div className="flex items-center justify-between">
+                              <h3 className="font-medium">{poll.question}</h3>
+                              <Badge
+                                variant={
+                                  poll.isActive ? "default" : "secondary"
+                                }
+                              >
+                                {poll.isActive ? "Active" : "Completed"}
+                              </Badge>
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              Created:{" "}
+                              {new Date(poll.createdAt).toLocaleString()}
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              Total Responses: {pollAnswers.length}
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                              {poll.options.map((option, optIndex) => (
+                                <div
+                                  key={optIndex}
+                                  className="flex justify-between p-2 bg-gray-50 rounded"
+                                >
+                                  <span>{option}</span>
+                                  <span className="font-medium">
+                                    {votes[optIndex]} votes
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
 
-        {state.students.length > 0 && (
+        {activeStudents.length > 0 && (
           <Card className="mt-8">
             <CardHeader>
               <CardTitle>Active Students</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {state.students.map((student) => {
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {activeStudents.map((student) => {
                   const hasAnsweredCurrent =
                     currentPoll &&
                     state.answers.some(
@@ -160,14 +229,54 @@ export default function TeacherDashboard() {
                       key={student.id}
                       className="flex items-center justify-between p-3 border rounded-lg"
                     >
-                      <span className="font-medium">{student.name}</span>
-                      {hasActivePoll && (
-                        <Badge
-                          variant={hasAnsweredCurrent ? "default" : "secondary"}
-                        >
-                          {hasAnsweredCurrent ? "Answered" : "Waiting"}
-                        </Badge>
-                      )}
+                      <div className="flex flex-col">
+                        <span className="font-medium">{student.name}</span>
+                        <span className="text-xs text-gray-500">
+                          Joined:{" "}
+                          {new Date(student.joinedAt).toLocaleTimeString()}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {hasActivePoll && (
+                          <Badge
+                            variant={
+                              hasAnsweredCurrent ? "default" : "secondary"
+                            }
+                          >
+                            {hasAnsweredCurrent ? "Answered" : "Waiting"}
+                          </Badge>
+                        )}
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-8 w-8 text-red-500 hover:text-red-700"
+                            >
+                              <UserX className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Kick Student</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to remove {student.name}{" "}
+                                from this polling session? They will no longer
+                                be able to participate.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleKickStudent(student.id)}
+                                className="bg-red-500 hover:bg-red-600"
+                              >
+                                Kick Student
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
                     </div>
                   );
                 })}
@@ -175,6 +284,9 @@ export default function TeacherDashboard() {
             </CardContent>
           </Card>
         )}
+
+        {/* Chat Popup */}
+        <ChatPopup userType="teacher" userName="Teacher" />
       </div>
     </div>
   );
