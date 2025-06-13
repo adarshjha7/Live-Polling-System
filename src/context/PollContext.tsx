@@ -259,14 +259,21 @@ export function PollProvider({ children }: { children: ReactNode }) {
 
   // Auto-update results when poll is active
   useEffect(() => {
-    if (state.currentPoll && state.answers.length > 0) {
+    if (
+      state.currentPoll &&
+      state.currentPoll.options &&
+      Array.isArray(state.answers) &&
+      state.answers.length > 0
+    ) {
       const votes = new Array(state.currentPoll.options.length).fill(0);
       const studentAnswers = state.answers.filter(
         (a) => a.pollId === state.currentPoll!.id,
       );
 
       studentAnswers.forEach((answer) => {
-        votes[answer.optionIndex]++;
+        if (answer.optionIndex >= 0 && answer.optionIndex < votes.length) {
+          votes[answer.optionIndex]++;
+        }
       });
 
       const newResults: PollResult = {
