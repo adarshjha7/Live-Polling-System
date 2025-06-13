@@ -24,18 +24,21 @@ export function PollQuestion({
   const currentPoll = state.currentPoll;
 
   useEffect(() => {
-    // Reset selection when new poll starts
-    if (currentPoll) {
+    // Only check if student has already answered this specific poll
+    if (currentPoll && studentId) {
       const existingAnswer = state.answers.find(
         (answer) =>
           answer.pollId === currentPoll.id && answer.studentId === studentId,
       );
       setIsSubmitted(!!existingAnswer);
-      if (!existingAnswer) {
-        setSelectedOption("");
-      }
     }
   }, [currentPoll?.id, state.answers, studentId]);
+
+  useEffect(() => {
+    // Reset selection only when poll ID changes (new poll)
+    setSelectedOption("");
+    setIsSubmitted(false);
+  }, [currentPoll?.id]);
 
   if (!currentPoll || !currentPoll.isActive) {
     return (
