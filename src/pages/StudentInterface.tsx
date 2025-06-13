@@ -85,6 +85,29 @@ export default function StudentInterface() {
     );
   }
 
+  if (isKicked) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Card className="w-full max-w-md mx-auto border-red-200">
+          <CardHeader className="text-center">
+            <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+              <AlertTriangle className="h-8 w-8 text-red-600" />
+            </div>
+            <CardTitle className="text-red-900">Access Denied</CardTitle>
+          </CardHeader>
+          <CardContent className="text-center">
+            <p className="text-red-700 mb-4">
+              You have been removed from this polling session by the teacher.
+            </p>
+            <Link to="/">
+              <Button className="w-full">Return to Home</Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="border-b bg-white">
