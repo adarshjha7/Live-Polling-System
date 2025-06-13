@@ -161,7 +161,24 @@ function pollReducer(state: PollState, action: PollAction): PollState {
       const savedState = localStorage.getItem("pollState");
       if (savedState) {
         try {
-          return JSON.parse(savedState);
+          const parsedState = JSON.parse(savedState);
+          // Ensure all required fields exist
+          return {
+            ...initialState,
+            ...parsedState,
+            chatMessages: Array.isArray(parsedState.chatMessages)
+              ? parsedState.chatMessages
+              : [],
+            kickedStudents: Array.isArray(parsedState.kickedStudents)
+              ? parsedState.kickedStudents
+              : [],
+            students: Array.isArray(parsedState.students)
+              ? parsedState.students.map((student: any) => ({
+                  ...student,
+                  isKicked: student.isKicked || false,
+                }))
+              : [],
+          };
         } catch (error) {
           console.error("Error loading saved state:", error);
         }
