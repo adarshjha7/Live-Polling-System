@@ -62,6 +62,12 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        poll: {
+          teacher: "hsl(214, 100%, 59%)", // Blue for teacher
+          student: "hsl(142, 76%, 36%)", // Green for student
+          active: "hsl(45, 100%, 51%)", // Yellow for active polls
+          completed: "hsl(220, 13%, 91%)", // Gray for completed
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
