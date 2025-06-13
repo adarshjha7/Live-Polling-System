@@ -347,8 +347,11 @@ export function PollProvider({ children }: { children: ReactNode }) {
     if (!state.currentPoll.isActive) return true;
 
     // Check if all active students have answered
-    const activeStudents = state.students.filter((s) => !s.isKicked);
-    const currentPollAnswers = state.answers.filter(
+    const students = Array.isArray(state.students) ? state.students : [];
+    const answers = Array.isArray(state.answers) ? state.answers : [];
+
+    const activeStudents = students.filter((s) => !s.isKicked);
+    const currentPollAnswers = answers.filter(
       (answer) => answer.pollId === state.currentPoll!.id,
     );
     return (
