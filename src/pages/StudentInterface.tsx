@@ -11,14 +11,24 @@ import { usePoll } from "@/context/PollContext";
 import { ArrowLeft, User, Clock, AlertTriangle } from "lucide-react";
 
 export default function StudentInterface() {
-  const { state, registerStudent } = usePoll();
+  const { state, registerStudent, refreshState } = usePoll();
   const [studentId, setStudentId] = useState<string>("");
   const [studentName, setStudentName] = useState<string>("");
   const [showNameModal, setShowNameModal] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const [isKicked, setIsKicked] = useState(false);
 
   const currentPoll = state.currentPoll;
   const hasActivePoll = currentPoll && currentPoll.isActive;
+
+  // Auto-refresh state every 2 seconds to sync with teacher actions
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refreshState();
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [refreshState]);
 
   useEffect(() => {
     // Check if student is already registered in this tab
