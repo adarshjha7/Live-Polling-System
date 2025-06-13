@@ -28,6 +28,15 @@ export interface Student {
   id: string;
   name: string;
   joinedAt: number;
+  isKicked: boolean;
+}
+
+export interface ChatMessage {
+  id: string;
+  message: string;
+  senderType: "teacher" | "student";
+  senderName: string;
+  timestamp: number;
 }
 
 export interface PollState {
@@ -36,4 +45,6 @@ export interface PollState {
   answers: Answer[];
   students: Student[];
   results: PollResult | null;
+  chatMessages: ChatMessage[];
+  kickedStudents: string[];
 }
