@@ -16,7 +16,12 @@ export function PollResults() {
   const { state } = usePoll();
   const results = state.results;
 
-  if (!results || results.totalVotes === 0) {
+  if (
+    !results ||
+    !results.options ||
+    !results.votes ||
+    results.totalVotes === 0
+  ) {
     return (
       <Card className="w-full max-w-4xl mx-auto">
         <CardContent className="text-center py-8">
