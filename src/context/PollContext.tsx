@@ -41,7 +41,10 @@ type PollAction =
   | { type: "REGISTER_STUDENT"; payload: Student }
   | { type: "UPDATE_RESULTS"; payload: PollResult }
   | { type: "LOAD_STATE"; payload: PollState }
-  | { type: "EXPIRE_POLL" };
+  | { type: "EXPIRE_POLL" }
+  | { type: "KICK_STUDENT"; payload: string }
+  | { type: "SEND_CHAT_MESSAGE"; payload: ChatMessage }
+  | { type: "REFRESH_STATE" };
 
 const initialState: PollState = {
   currentPoll: null,
@@ -49,6 +52,8 @@ const initialState: PollState = {
   answers: [],
   students: [],
   results: null,
+  chatMessages: [],
+  kickedStudents: [],
 };
 
 function pollReducer(state: PollState, action: PollAction): PollState {
@@ -61,6 +66,8 @@ function pollReducer(state: PollState, action: PollAction): PollState {
         results: null,
       };
       localStorage.setItem("pollState", JSON.stringify(newState));
+      // Trigger storage event for cross-tab sync
+      window.dispatchEvent(new Event("poll-state-updated"));
       return newState;
 
     case "SUBMIT_ANSWER":
@@ -70,7 +77,7 @@ function pollReducer(state: PollState, action: PollAction): PollState {
         answers: updatedAnswers,
       };
 
-      // Calculate results
+      // Calculate results immediately
       if (state.currentPoll) {
         const votes = new Array(state.currentPoll.options.length).fill(0);
         const studentAnswers = updatedAnswers.filter(
@@ -92,6 +99,7 @@ function pollReducer(state: PollState, action: PollAction): PollState {
       }
 
       localStorage.setItem("pollState", JSON.stringify(updatedState));
+      window.dispatchEvent(new Event("poll-state-updated"));
       return updatedState;
 
     case "REGISTER_STUDENT":
@@ -100,13 +108,16 @@ function pollReducer(state: PollState, action: PollAction): PollState {
         students: [...state.students, action.payload],
       };
       localStorage.setItem("pollState", JSON.stringify(stateWithStudent));
+      window.dispatchEvent(new Event("poll-state-updated"));
       return stateWithStudent;
 
     case "UPDATE_RESULTS":
-      return {
+      const stateWithResults = {
         ...state,
         results: action.payload,
       };
+      localStorage.setItem("pollState", JSON.stringify(stateWithResults));
+      return stateWithResults;
 
     case "EXPIRE_POLL":
       const expiredState = {
@@ -116,10 +127,46 @@ function pollReducer(state: PollState, action: PollAction): PollState {
           : null,
       };
       localStorage.setItem("pollState", JSON.stringify(expiredState));
+      window.dispatchEvent(new Event("poll-state-updated"));
       return expiredState;
+
+    case "KICK_STUDENT":
+      const kickedState = {
+        ...state,
+        students: state.students.map((student) =>
+          student.id === action.payload
+            ? { ...student, isKicked: true }
+            : student,
+        ),
+        kickedStudents: [...state.kickedStudents, action.payload],
+      };
+      localStorage.setItem("pollState", JSON.stringify(kickedState));
+      window.dispatchEvent(new Event("poll-state-updated"));
+      return kickedState;
+
+    case "SEND_CHAT_MESSAGE":
+      const chatState = {
+        ...state,
+        chatMessages: [...state.chatMessages, action.payload],
+      };
+      localStorage.setItem("pollState", JSON.stringify(chatState));
+      window.dispatchEvent(new Event("poll-state-updated"));
+      return chatState;
 
     case "LOAD_STATE":
       return action.payload;
+
+    case "REFRESH_STATE":
+      // Force reload from localStorage
+      const savedState = localStorage.getItem("pollState");
+      if (savedState) {
+        try {
+          return JSON.parse(savedState);
+        } catch (error) {
+          console.error("Error loading saved state:", error);
+        }
+      }
+      return state;
 
     default:
       return state;
@@ -137,11 +184,33 @@ export function PollProvider({ children }: { children: ReactNode }) {
     if (savedState) {
       try {
         const parsedState = JSON.parse(savedState);
-        dispatch({ type: "LOAD_STATE", payload: parsedState });
+        // Ensure all required fields exist
+        const completeState = {
+          ...initialState,
+          ...parsedState,
+          chatMessages: parsedState.chatMessages || [],
+          kickedStudents: parsedState.kickedStudents || [],
+        };
+        dispatch({ type: "LOAD_STATE", payload: completeState });
       } catch (error) {
         console.error("Error loading saved state:", error);
       }
     }
+  }, []);
+
+  // Listen for cross-tab state updates
+  useEffect(() => {
+    const handleStorageUpdate = () => {
+      dispatch({ type: "REFRESH_STATE" });
+    };
+
+    window.addEventListener("poll-state-updated", handleStorageUpdate);
+    window.addEventListener("storage", handleStorageUpdate);
+
+    return () => {
+      window.removeEventListener("poll-state-updated", handleStorageUpdate);
+      window.removeEventListener("storage", handleStorageUpdate);
+    };
   }, []);
 
   // Timer for current poll
@@ -157,6 +226,33 @@ export function PollProvider({ children }: { children: ReactNode }) {
       return () => clearInterval(interval);
     }
   }, [state.currentPoll]);
+
+  // Auto-update results when poll is active
+  useEffect(() => {
+    if (state.currentPoll && state.answers.length > 0) {
+      const votes = new Array(state.currentPoll.options.length).fill(0);
+      const studentAnswers = state.answers.filter(
+        (a) => a.pollId === state.currentPoll!.id,
+      );
+
+      studentAnswers.forEach((answer) => {
+        votes[answer.optionIndex]++;
+      });
+
+      const newResults: PollResult = {
+        pollId: state.currentPoll.id,
+        question: state.currentPoll.question,
+        options: state.currentPoll.options,
+        votes,
+        totalVotes: studentAnswers.length,
+        studentAnswers,
+      };
+
+      if (JSON.stringify(newResults) !== JSON.stringify(state.results)) {
+        dispatch({ type: "UPDATE_RESULTS", payload: newResults });
+      }
+    }
+  }, [state.currentPoll, state.answers]);
 
   const createPoll = (question: string, options: string[]) => {
     const poll: Poll = {
@@ -194,6 +290,7 @@ export function PollProvider({ children }: { children: ReactNode }) {
       id: studentId,
       name,
       joinedAt: Date.now(),
+      isKicked: false,
     };
     dispatch({ type: "REGISTER_STUDENT", payload: student });
 
@@ -212,13 +309,14 @@ export function PollProvider({ children }: { children: ReactNode }) {
     if (!state.currentPoll) return true;
     if (!state.currentPoll.isActive) return true;
 
-    // Check if all students have answered
+    // Check if all active students have answered
+    const activeStudents = state.students.filter((s) => !s.isKicked);
     const currentPollAnswers = state.answers.filter(
       (answer) => answer.pollId === state.currentPoll!.id,
     );
     return (
-      currentPollAnswers.length === state.students.length &&
-      state.students.length > 0
+      currentPollAnswers.length === activeStudents.length &&
+      activeStudents.length > 0
     );
   };
 
@@ -226,6 +324,29 @@ export function PollProvider({ children }: { children: ReactNode }) {
     if (!state.currentPoll || !state.currentPoll.isActive) return 0;
     const remaining = Math.max(0, state.currentPoll.expiresAt - Date.now());
     return Math.ceil(remaining / 1000);
+  };
+
+  const kickStudent = (studentId: string) => {
+    dispatch({ type: "KICK_STUDENT", payload: studentId });
+  };
+
+  const sendChatMessage = (
+    message: string,
+    senderType: "teacher" | "student",
+    senderName: string,
+  ) => {
+    const chatMessage: ChatMessage = {
+      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+      message,
+      senderType,
+      senderName,
+      timestamp: Date.now(),
+    };
+    dispatch({ type: "SEND_CHAT_MESSAGE", payload: chatMessage });
+  };
+
+  const refreshState = () => {
+    dispatch({ type: "REFRESH_STATE" });
   };
 
   return (
@@ -238,6 +359,9 @@ export function PollProvider({ children }: { children: ReactNode }) {
         getStudentById,
         canCreateNewPoll,
         getTimeRemaining,
+        kickStudent,
+        sendChatMessage,
+        refreshState,
       }}
     >
       {children}
