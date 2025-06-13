@@ -56,6 +56,16 @@ export default function StudentInterface() {
     }
   }, [studentId, currentPoll, state.answers, hasActivePoll]);
 
+  // Check if student has been kicked
+  useEffect(() => {
+    if (studentId) {
+      const student = state.students.find((s) => s.id === studentId);
+      if (student && student.isKicked) {
+        setIsKicked(true);
+      }
+    }
+  }, [studentId, state.students]);
+
   const handleNameSubmit = (name: string) => {
     const id = registerStudent(name);
     setStudentId(id);
