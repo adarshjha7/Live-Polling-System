@@ -226,6 +226,9 @@ export default function StudentInterface() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Chat Popup */}
+        <ChatPopup userType="student" userName={studentName} />
       </div>
     </div>
   );
