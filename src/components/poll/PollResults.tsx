@@ -127,7 +127,7 @@ export function PollResults() {
         </CardContent>
       </Card>
 
-      {results.studentAnswers.length > 0 && (
+      {results.studentAnswers && results.studentAnswers.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>Student Responses</CardTitle>
