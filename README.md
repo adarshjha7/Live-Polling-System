@@ -10,6 +10,19 @@
 
 
 ---
+##  Run Locally
+
+Follow these steps to run the project on your local machine:
+
+### 1. Clone the repository and start the app
+
+```bash
+git clone https://github.com/adarshjha7/Live-Polling-System.git
+cd Live-Polling-System
+npm install
+npm run dev
+```
+---
 
 ## 👨‍🏫 Teacher Features
 
