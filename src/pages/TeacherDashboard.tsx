@@ -1,14 +1,33 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { PollCreator } from "@/components/poll/PollCreator";
 import { PollResults } from "@/components/poll/PollResults";
 import { Timer } from "@/components/poll/Timer";
+import { ChatPopup } from "@/components/poll/ChatPopup";
 import { usePoll } from "@/context/PollContext";
-import { ArrowLeft, Users, BarChart3, Clock } from "lucide-react";
+import {
+  ArrowLeft,
+  Users,
+  BarChart3,
+  Clock,
+  UserX,
+  History,
+} from "lucide-react";
 
 export default function TeacherDashboard() {
   const { state } = usePoll();
