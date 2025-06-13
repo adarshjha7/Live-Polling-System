@@ -184,16 +184,29 @@ export function PollProvider({ children }: { children: ReactNode }) {
     if (savedState) {
       try {
         const parsedState = JSON.parse(savedState);
-        // Ensure all required fields exist
+        // Ensure all required fields exist and provide defaults for new fields
         const completeState = {
           ...initialState,
           ...parsedState,
-          chatMessages: parsedState.chatMessages || [],
-          kickedStudents: parsedState.kickedStudents || [],
+          chatMessages: Array.isArray(parsedState.chatMessages)
+            ? parsedState.chatMessages
+            : [],
+          kickedStudents: Array.isArray(parsedState.kickedStudents)
+            ? parsedState.kickedStudents
+            : [],
+          // Ensure students have isKicked property
+          students: Array.isArray(parsedState.students)
+            ? parsedState.students.map((student: any) => ({
+                ...student,
+                isKicked: student.isKicked || false,
+              }))
+            : [],
         };
         dispatch({ type: "LOAD_STATE", payload: completeState });
       } catch (error) {
         console.error("Error loading saved state:", error);
+        // If there's an error parsing, start fresh
+        localStorage.removeItem("pollState");
       }
     }
   }, []);
