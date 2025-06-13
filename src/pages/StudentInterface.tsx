@@ -6,8 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { PollQuestion } from "@/components/poll/PollQuestion";
 import { PollResults } from "@/components/poll/PollResults";
 import { StudentNameModal } from "@/components/poll/StudentNameModal";
+import { ChatPopup } from "@/components/poll/ChatPopup";
 import { usePoll } from "@/context/PollContext";
-import { ArrowLeft, User, Clock } from "lucide-react";
+import { ArrowLeft, User, Clock, AlertTriangle } from "lucide-react";
 
 export default function StudentInterface() {
   const { state, registerStudent } = usePoll();
