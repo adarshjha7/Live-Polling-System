@@ -59,9 +59,9 @@ export default function Home() {
               <CardContent className="text-center">
                 <p className="text-gray-600 mb-6">
                   Join polls, submit your answers, and see how others responded
-                  in real-time.
+                  real-time.
                 </p>
-                <Button className="w-full" size="lg" variant="outline">
+                <Button className="w-full" size="lg">
                   Join as Student
                 </Button>
                 <div className="mt-4 text-sm text-gray-500">
