@@ -24,15 +24,18 @@ export function PollQuestion({
   const currentPoll = state.currentPoll;
 
   useEffect(() => {
-    // Check if student has already answered this poll
+    // Reset selection when new poll starts
     if (currentPoll) {
       const existingAnswer = state.answers.find(
         (answer) =>
           answer.pollId === currentPoll.id && answer.studentId === studentId,
       );
       setIsSubmitted(!!existingAnswer);
+      if (!existingAnswer) {
+        setSelectedOption("");
+      }
     }
-  }, [currentPoll, state.answers, studentId]);
+  }, [currentPoll?.id, state.answers, studentId]);
 
   if (!currentPoll || !currentPoll.isActive) {
     return (
